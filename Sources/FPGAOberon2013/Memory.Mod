@@ -35,7 +35,6 @@ MODULE Memory;  (*Generic heap allocation procedure New(ptr, size) / AP 7.2.20*)
     VAR mod: Modules.Module;
       t, prev: Tag;
       p, mark, tag, size: LONGINT;
-      continue: BOOLEAN;
   BEGIN
     IF root # NIL THEN mod := Modules.root;
       WHILE mod # NIL DO
@@ -46,10 +45,9 @@ MODULE Memory;  (*Generic heap allocation procedure New(ptr, size) / AP 7.2.20*)
       REPEAT SYSTEM.GET(p+4, mark);
         IF mark < 0 THEN (*free*) SYSTEM.GET(p, size)
         ELSE (*allocated*) SYSTEM.GET(p, tag); SYSTEM.GET(tag, size);
-          IF mark > 0 THEN (*marked*) SYSTEM.PUT(p+4, 0); t := root; continue := TRUE;
-            WHILE continue & (t # NIL) DO (*mark referenced hidden type descriptors*)
-              IF SYSTEM.VAL(LONGINT, t) = tag THEN INC(t.mark); continue := FALSE END ;
-              t := t.next
+          IF mark > 0 THEN (*marked*) SYSTEM.PUT(p+4, 0); t := root;
+            WHILE t # NIL DO (*mark referenced hidden type descriptors*)
+              IF SYSTEM.VAL(LONGINT, t) = tag THEN INC(t.mark); t := NIL ELSE t := t.next END
             END
           END
         END ;
